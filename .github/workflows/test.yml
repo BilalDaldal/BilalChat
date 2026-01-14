@@ -60,7 +60,10 @@ jobs:
         if result['error']:
             print(f"Error: {result['error']}")
     
-    - name: Build Application
+    - name: Build Updater First
+      run: python -m PyInstaller BilalChatUpdater.spec --noconfirm
+    
+    - name: Build Main Application
       run: python -m PyInstaller BilalChat.spec --noconfirm
     
     - name: Verify Build
