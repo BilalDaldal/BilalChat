@@ -60,6 +60,14 @@ jobs:
         if result['error']:
             print(f"Error: {result['error']}")
     
+    - name: Create placeholder files for build
+      shell: pwsh
+      run: |
+        # Create placeholder certificate file
+        New-Item -Path "BilalChat.cer" -ItemType File -Force
+        # Create placeholder batch file
+        "@echo off" | Out-File -FilePath "install_certificate.bat" -Encoding ascii
+    
     - name: Build Updater First
       run: python -m PyInstaller BilalChatUpdater.spec --noconfirm
     
