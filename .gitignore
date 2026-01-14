@@ -1,0 +1,26 @@
+# Ignore build artifacts
+build/
+dist/
+__pycache__/
+*.pyc
+*.pyo
+*.exe
+*.spec
+
+# Database
+*.db
+
+# Certificate files (security)
+*.cer
+*.pfx
+
+# Batch files
+*.bat
+
+# IDE
+.vscode/
+.idea/
+
+# Keep these files
+!BilalChat.spec
+!BilalChatUpdater.spec

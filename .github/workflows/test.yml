@@ -1,0 +1,84 @@
+name: Test Update System
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Manuel çalıştırma için
+
+jobs:
+  test-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install customtkinter pillow pyinstaller bcrypt
+    
+    - name: Test GitHub API Connection
+      run: |
+        python -c "
+import urllib.request
+import json
+import ssl
+
+url = 'https://api.github.com/repos/BilalDaldal/BilalChat/releases/latest'
+context = ssl.create_default_context()
+
+try:
+    req = urllib.request.Request(url, headers={'User-Agent': 'Test'})
+    with urllib.request.urlopen(req, timeout=10, context=context) as response:
+        data = json.loads(response.read())
+        print('✅ GitHub API OK')
+        print(f'Latest version: {data.get(\"tag_name\", \"N/A\")}')
+        print(f'Assets: {len(data.get(\"assets\", []))}')
+except Exception as e:
+    print(f'❌ GitHub API Error: {e}')
+    exit(1)
+"
+    
+    - name: Test Updater Module
+      run: |
+        cd cmd-chat
+        python -c "
+import updater
+print(f'Current Version: {updater.CURRENT_VERSION}')
+result = updater.check_for_updates()
+print(f'Success: {result[\"success\"]}')
+print(f'Needs Update: {result[\"needs_update\"]}')
+print(f'Latest Version: {result[\"latest_version\"]}')
+if result['error']:
+    print(f'Error: {result[\"error\"]}')
+"
+    
+    - name: Build Application
+      run: |
+        cd cmd-chat
+        python -m PyInstaller BilalChat.spec --noconfirm
+    
+    - name: Verify Build
+      run: |
+        if (Test-Path "cmd-chat/dist/BilalChat.exe") {
+          $size = (Get-Item "cmd-chat/dist/BilalChat.exe").Length / 1MB
+          Write-Host "✅ BilalChat.exe built successfully ($([math]::Round($size, 2)) MB)"
+        } else {
+          Write-Host "❌ Build failed!"
+          exit 1
+        }
+    
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: BilalChat-Windows
+        path: cmd-chat/dist/BilalChat.exe
+        retention-days: 7
