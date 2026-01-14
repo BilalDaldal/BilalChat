@@ -41,10 +41,15 @@ DEBUG = True
 
 
 def log(message: str, level: str = "INFO"):
-    """Log mesajı yazdır"""
+    """Log mesajı yazdır - encoding-safe"""
     if DEBUG or level in ("ERROR", "WARNING"):
         timestamp = time.strftime("%H:%M:%S")
-        print(f"[{timestamp}] [{level}] {message}")
+        try:
+            print(f"[{timestamp}] [{level}] {message}")
+        except UnicodeEncodeError:
+            # ASCII olmayan karakterleri kaldır
+            safe_msg = message.encode('ascii', 'replace').decode('ascii')
+            print(f"[{timestamp}] [{level}] {safe_msg}")
 
 
 def get_ssl_context():
